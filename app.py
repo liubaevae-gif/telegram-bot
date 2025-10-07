@@ -273,7 +273,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 def webhook():
     json_data = request.get_json(force=True)
     update = Update.de_json(json_data, application.bot)
-    asyncio.run(application.process_update(update))  # <-- Await через run
+    asyncio.run(application.process_update(update))
     return 'OK'
 
 if __name__ == '__main__':
@@ -286,3 +286,4 @@ if __name__ == '__main__':
     # Запуск Flask
     port = int(os.environ.get('PORT', 10000))  # Render часто 10000
     flask_app.run(host='0.0.0.0', port=port)
+
