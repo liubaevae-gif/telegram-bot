@@ -1,12 +1,13 @@
-
 import random
+import os
+from flask import Flask, request
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
-# Здесь вставь свой токен от BotFather
+# Твой токен (не меняй, но в будущем храни в секрете — через Render env vars)
 TOKEN = "8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM"
 
-# Примеры (можно заменить на полный список из 100)
+# Все твои фразы (полный список)
 phrases = [
     '*_Доверься процессу_*',
     '*_Сегодня важна тишина_*',
@@ -110,6 +111,7 @@ phrases = [
     '*_Дыши сердцем_*'
 ]
 
+# Все твои цвета (полный список)
 colors = [
     '*_Лазурный — цвет покоя и глубины_*',
     '*_Изумрудный — цвет восстановления_*',
@@ -153,6 +155,7 @@ colors = [
     '*_Теплый фуксия — цвет дерзости_*'
 ]
 
+# Все твои состояния (полный список)
 states = [
     '*_Слушай тишину – там больше ответов, чем в шуме._*',
     '*_Сегодня не обязательно быть сильным. Достаточно быть настоящим._*',
@@ -239,12 +242,16 @@ keyboard = [
     ["🫧 Состояние дня"]
 ]
 
+# Flask app для webhook
+flask_app = Flask(__name__)
+
+# Telegram application
+application = ApplicationBuilder().token(TOKEN).build()
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Нажми кнопку и получи свой случайный опорный ориентир на сегодня 🌿",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
-   
 
-# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if text == "📝 Фраза дня":
@@ -256,11 +263,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Нажми на одну из кнопок ниже, чтобы получить подсказку дня 🌿")
 
-# Запуск бота
-if __name__ == "__main__":
-    app = ApplicationBuilder().token("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM").build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Бот запущен...")
+# Добавляем хендлеры к Telegram app
+application.add_handler(CommandHandler("start", start))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    app.run_polling()
+# Webhook endpoint: Telegram шлёт POST-запросы сюда
+@flask_app.route('/webhook', methods=['POST'])
+def webhook():
+    json_data = request.get_json(force=True)
+    update = Update.de_json(json_data, application.bot)
+    application.process_update(update)
+    return 'OK'
+
+if __name__ == '__main__':
+    # Удаляем старый webhook и устанавливаем новый (замени на свой URL от Render!)
+    application.bot.remove_webhook()
+    webhook_url = 'https://твой-сервис.onrender.com/webhook'  # <-- Поменяй на реальный URL после деплоя
+    application.bot.set_webhook(url=webhook_url)
+    print(f"Webhook установлен: {webhook_url}")
+    print("Бот запущен...")
+    # Запуск Flask (Render использует PORT env)
+    port = int(os.environ.get('PORT', 8443))
+    flask_app.run(host='0.0.0.0', port=port)
+
