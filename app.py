@@ -245,6 +245,11 @@ states = [
     '*_Твое тело умнее, чем ты думаешь._*'
 ]
 
+keyboard = [
+    ["📝 Фраза дня", "🎨 Цвет дня"],
+    ["🫧 Состояние дня"]
+]
+
 # === Telegram Bot Handlers ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 await update.message.reply_text(
@@ -296,4 +301,5 @@ port = int(os.environ.get("PORT", 5000))
 asyncio.run(set_webhook())
 telegram_app.initialize()
 flask_app.run(host="0.0.0.0", port=port)
+
 
