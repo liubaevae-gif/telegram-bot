@@ -262,7 +262,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === Flask + Telegram Webhook integration ===
 flask_app = Flask(__name__)
-telegram_app = ApplicationBuilder().token(TOKEN).build()
+telegram_app = ApplicationBuilder().token("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM").build()
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -287,6 +287,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     asyncio.run(set_webhook())
     flask_app.run(host="0.0.0.0", port=port)
+
 
 
 
