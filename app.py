@@ -7,8 +7,8 @@ from telegram.ext import (ApplicationBuilder, CommandHandler,
                           MessageHandler, ContextTypes, filters)
 
 # === Константы ===
-TOKEN = os.environ.get("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM")
-WEBHOOK_URL = os.environ.get("https://elena-tg-bot.onrender.com/webhook")
+TOKEN = os.environ.get("TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 # === Flask app ===
 flask_app = Flask(__name__)
@@ -298,6 +298,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     asyncio.run(set_webhook())
     flask_app.run(host="0.0.0.0", port=port)
+
 
 
 
