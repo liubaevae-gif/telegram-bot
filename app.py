@@ -1,5 +1,6 @@
 import random
 import os
+import asyncio
 from flask import Flask, request
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
@@ -272,19 +273,16 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 def webhook():
     json_data = request.get_json(force=True)
     update = Update.de_json(json_data, application.bot)
-    application.process_update(update)
+    asyncio.run(application.process_update(update))  # <-- Await через run
     return 'OK'
 
 if __name__ == '__main__':
-    # Удаляем старый webhook и устанавливаем новый (замени на свой URL от Render!)
-    application.bot.delete_webhook()  # <-- Фикс: delete вместо remove
-    webhook_url = 'https://твой-сервис.onrender.com/webhook'  # <-- Поменяй на реальный URL после деплоя
-    application.bot.set_webhook(url=webhook_url)
+    # Async setup webhook (с await)
+    asyncio.run(application.bot.delete_webhook())
+    webhook_url = 'https://elena-tg-bot.onrender.com/webhook'  # <-- Твой реальный URL + /webhook
+    asyncio.run(application.bot.set_webhook(url=webhook_url))
     print(f"Webhook установлен: {webhook_url}")
     print("Бот запущен...")
-    # Запуск Flask (Render использует PORT env)
-    port = int(os.environ.get('PORT', 8443))
+    # Запуск Flask
+    port = int(os.environ.get('PORT', 10000))  # Render часто 10000
     flask_app.run(host='0.0.0.0', port=port)
-
-
-
