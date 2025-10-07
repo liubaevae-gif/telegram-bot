@@ -250,24 +250,27 @@ keyboard = [
     ["🫧 Состояние дня"]
 ]
 
+
 # === Telegram Bot Handlers ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await update.message.reply_text(
-"Привет! Нажми кнопку и получи свой случайный опорный ориентир на сегодня 🌿",
-reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-)
+    await update.message.reply_text(
+        "Привет! Нажми кнопку и получи свой случайный опорный ориентир на сегодня 🌿",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-text = update.message.text
-if text == "📝 Фраза дня":
-await update.message.reply_text(random.choice(phrases), parse_mode="Markdown")
-elif text == "🎨 Цвет дня":
-await update.message.reply_text(random.choice(colors), parse_mode="Markdown")
-elif text == "🯧 Состояние дня":
-await update.message.reply_text(random.choice(states), parse_mode="Markdown")
-else:
-await update.message.reply_text("Нажми на одну из кнопок ниже, чтобы получить подсказку 🌿")
+    text = update.message.text
+    if text == "📝 Фраза дня":
+        await update.message.reply_text(random.choice(phrases), parse_mode="Markdown")
+    elif text == "🎨 Цвет дня":
+        await update.message.reply_text(random.choice(colors), parse_mode="Markdown")
+    elif text == "🫧 Состояние дня":
+        await update.message.reply_text(random.choice(states), parse_mode="Markdown")
+    else:
+        await update.message.reply_text("Нажми на одну из кнопок ниже, чтобы получить подсказку 🌿")
+
 
 
 # === Flask + Telegram Webhook integration ===
@@ -281,25 +284,25 @@ telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_
 
 @flask_app.route("/")
 def index():
-return "Бот запущен и работает! ✅"
-
+    return "Бот запущен и работает! ✅"
 
 @flask_app.route("/webhook", methods=["POST"])
 def webhook():
-update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-asyncio.run(telegram_app.process_update(update))
-return "ok", 200
-
+    update = Update.de_json(request.get_json(force=True), telegram_app.bot)
+    asyncio.run(telegram_app.process_update(update))
+    return "ok", 200
 
 async def set_webhook():
-await telegram_app.bot.set_webhook(WEBHOOK_URL)
-print("Webhook установлен!")
+    await telegram_app.bot.set_webhook(WEBHOOK_URL)
+    print("Webhook установлен!")
 
 
 if __name__ == "__main__":
-port = int(os.environ.get("PORT", 5000))
-asyncio.run(set_webhook())
-telegram_app.initialize()
-flask_app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    asyncio.run(set_webhook())
+    telegram_app.initialize()
+    flask_app.run(host="0.0.0.0", port=port)
+
+
 
 
