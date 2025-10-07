@@ -4,16 +4,25 @@ import asyncio
 from flask import Flask, request
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
-ApplicationBuilder,
-CommandHandler,
-MessageHandler,
-ContextTypes,
-filters,
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
 )
 
-
-TOKEN = "8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM"
+TOKEN = "ТВОЙ_ТОКЕН"
 WEBHOOK_URL = "https://elena-tg-bot.onrender.com/webhook"
+
+# === Flask app ===
+flask_app = Flask(__name__)
+
+# === Telegram app ===
+telegram_app = ApplicationBuilder().token(TOKEN).build()
+
+# 🔹 ОБЯЗАТЕЛЬНО инициализируем приложение при старте
+loop = asyncio.get_event_loop()
+loop.run_until_complete(telegram_app.initialize())
 
 # Все твои фразы (полный список)
 phrases = [
@@ -254,11 +263,9 @@ keyboard = [
 # === Telegram Bot Handlers ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Привет! Нажми кнопку и получи свой случайный опорный ориентир на сегодня 🌿",
+        "Привет! Нажми кнопку и получи свой случайный опорный ориентир 🌿",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
-
-
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -269,22 +276,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "🫧 Состояние дня":
         await update.message.reply_text(random.choice(states), parse_mode="Markdown")
     else:
-        await update.message.reply_text("Нажми на одну из кнопок ниже, чтобы получить подсказку 🌿")
-
-
-
-# === Flask + Telegram Webhook integration ===
-flask_app = Flask(__name__)
-telegram_app = ApplicationBuilder().token(TOKEN).build()
-
+        await update.message.reply_text("Нажми на кнопку 🌿")
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-
 @flask_app.route("/")
 def index():
-    return "Бот запущен и работает! ✅"
+    return "Бот запущен ✅"
 
 @flask_app.route("/webhook", methods=["POST"])
 def webhook():
@@ -296,12 +295,11 @@ async def set_webhook():
     await telegram_app.bot.set_webhook(WEBHOOK_URL)
     print("Webhook установлен!")
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     asyncio.run(set_webhook())
-    telegram_app.initialize()
     flask_app.run(host="0.0.0.0", port=port)
+
 
 
 
