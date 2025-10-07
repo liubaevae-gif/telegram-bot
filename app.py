@@ -277,13 +277,10 @@ def webhook():
     return 'OK'
 
 if __name__ == '__main__':
-    # Async setup webhook (с await)
     asyncio.run(application.bot.delete_webhook())
-    webhook_url = 'https://elena-tg-bot.onrender.com/webhook'  # <-- Твой реальный URL + /webhook
+    webhook_url = 'https://elena-tg-bot.onrender.com/webhook'  # Твой реальный URL
     asyncio.run(application.bot.set_webhook(url=webhook_url))
     print(f"Webhook установлен: {webhook_url}")
     print("Бот запущен...")
-    # Запуск Flask
-    port = int(os.environ.get('PORT', 10000))  # Render часто 10000
+    port = int(os.environ.get('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
-
