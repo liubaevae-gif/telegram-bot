@@ -3,7 +3,7 @@ import os
 import asyncio
 from flask import Flask, request
 from telegram import Update, ReplyKeyboardMarkup, Bot  # Добавил Bot для синхронного (если нужно)
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
 TOKEN = "8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM"
 
@@ -286,3 +286,4 @@ if __name__ == '__main__':
     print("Бот запущен... (webhook настроен вручную)")
     port = int(os.environ.get('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
+
