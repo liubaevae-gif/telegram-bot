@@ -1,28 +1,16 @@
-import os
 import random
 import asyncio
 from flask import Flask, request
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import (ApplicationBuilder, CommandHandler,
-                          MessageHandler, ContextTypes, filters)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import os
 
-# === Константы ===
-TOKEN = os.environ.get("TOKEN")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
+TOKEN = os.getenv("BOT_TOKEN")
 
-# === Flask app ===
-flask_app = Flask(__name__)
+app = Flask(__name__)
+telegram_app = Application.builder().token(TOKEN).build()
 
-# === Telegram app ===
-telegram_app = ApplicationBuilder().token("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM").build()
-
-# 🔹 ОБЯЗАТЕЛЬНО инициализируем приложение при старте
-loop = asyncio.get_event_loop()
-loop.run_until_complete(telegram_app.initialize())
-
-
-keyboard = [["📝 Фраза дня", "🎨 Цвет дня"], ["🫧 Состояние дня"]]
-
+# --- Твои списки фраз, цветов и состояний:
 phrases = [
     '*_Доверься процессу_*',
     '*_Сегодня важна тишина_*',
@@ -252,61 +240,47 @@ states = [
     '*_Твое тело умнее, чем ты думаешь._*'
 ]
 
-
-# === Обработчики Telegram ===
+# --- Стартовая команда
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Привет! Нажми кнопку и получи свой случайный опорный ориентир на сегодня 🌿",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    )
+    keyboard = [
+        [InlineKeyboardButton("🎲 Фраза дня", callback_data="phrase")],
+        [InlineKeyboardButton("🎨 Цвет дня", callback_data="color")],
+        [InlineKeyboardButton("🌿 Состояние дня", callback_data="state")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Выбери, что ты хочешь получить сегодня:", reply_markup=reply_markup)
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    if text == "📝 Фраза дня":
-        await update.message.reply_text(random.choice(phrases), parse_mode="Markdown")
-    elif text == "🎨 Цвет дня":
-        await update.message.reply_text(random.choice(colors), parse_mode="Markdown")
-    elif text == " \aded Состояние дня":
-        await update.message.reply_text(random.choice(states), parse_mode="Markdown")
+# --- Обработка кнопок
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "phrase":
+        response = random.choice(phrases)
+    elif query.data == "color":
+        response = random.choice(colors)
+    elif query.data == "state":
+        response = random.choice(states)
     else:
-        await update.message.reply_text("Нажми на одну из кнопок ниже, чтобы получить подсказку 🌿")
+        response = "Что-то пошло не так."
 
-# === Flask + Telegram Webhook integration ===
-flask_app = Flask(__name__)
-telegram_app = ApplicationBuilder().token("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM").build()
+    await query.edit_message_text(response, parse_mode="Markdown")
 
+# --- Регистрация хендлеров
 telegram_app.add_handler(CommandHandler("start", start))
-telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+telegram_app.add_handler(CallbackQueryHandler(handle_button))
 
-@flask_app.route("/")
-def index():
-    return "Бот запущен и работает! ✅"
-
-@flask_app.route("/webhook", methods=["POST"])
-def webhook():
+# --- Webhook
+@app.route("/webhook", methods=["POST"])
+async def webhook():
     update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-    asyncio.get_event_loop().create_task(telegram_app.process_update(update))
-    return "ok", 200
+    await telegram_app.process_update(update)
+    return "ok"
 
-
-async def set_webhook():
-    await telegram_app.initialize()
-    await telegram_app.bot.set_webhook(WEBHOOK_URL)
-    print("Webhook установлен!")
+# --- Web-интерфейс
+@app.route("/")
+def home():
+    return "Бот работает."
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    asyncio.run(set_webhook())
-    flask_app.run(host="0.0.0.0", port=port)
-
-
-
-
-
-
-
-
-
-
-
-
+    telegram_app.run_polling()
