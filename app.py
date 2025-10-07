@@ -278,11 +278,12 @@ def webhook():
 if __name__ == '__main__':
     # Удаляем старый webhook и устанавливаем новый (замени на свой URL от Render!)
     application.bot.remove_webhook()
-    webhook_url = 'https://твой-сервис.onrender.com/webhook'  # <-- Поменяй на реальный URL после деплоя
+    webhook_url = 'https://elena-tg-bot.onrender.com/webhook'  # <-- Поменяй на реальный URL после деплоя
     application.bot.set_webhook(url=webhook_url)
     print(f"Webhook установлен: {webhook_url}")
     print("Бот запущен...")
     # Запуск Flask (Render использует PORT env)
     port = int(os.environ.get('PORT', 8443))
     flask_app.run(host='0.0.0.0', port=port)
+
 
