@@ -10,6 +10,17 @@ from telegram.ext import (ApplicationBuilder, CommandHandler,
 TOKEN = os.environ.get("8416342563:AAF2yDXKKdTdFS92xXDHcjJ6XXqiSDHKQbM")
 WEBHOOK_URL = os.environ.get("https://elena-tg-bot.onrender.com/webhook")
 
+# === Flask app ===
+flask_app = Flask(__name__)
+
+# === Telegram app ===
+telegram_app = ApplicationBuilder().token(TOKEN).build()
+
+# 🔹 ОБЯЗАТЕЛЬНО инициализируем приложение при старте
+loop = asyncio.get_event_loop()
+loop.run_until_complete(telegram_app.initialize())
+
+
 keyboard = [["📝 Фраза дня", "🎨 Цвет дня"], ["🫧 Состояние дня"]]
 
 phrases = [
@@ -287,6 +298,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     asyncio.run(set_webhook())
     flask_app.run(host="0.0.0.0", port=port)
+
 
 
 
